@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<title>Happy Birthday, Ronak</title>
+<meta name="description" content="A cinematic birthday experience for Ronak, made with love by Kavyansh." />
+
+<!-- Google Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;0,900;1,500;1,600&family=Poppins:wght@200;300;400;500;600;700&display=swap" rel="stylesheet" />
+
+<!-- Stylesheet -->
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<!-- ============================================================
+     PERSISTENT GALAXY BACKGROUND (Three.js canvas)
+     Sits behind every scene, fixed, full-viewport.
+     Parallax on mouse-move, aurora + shooting stars layered on top with CSS.
+============================================================ -->
+<canvas id="galaxy-canvas" aria-hidden="true"></canvas>
+<div class="aurora-layer" aria-hidden="true">
+  <div class="aurora aurora--one"></div>
+  <div class="aurora aurora--two"></div>
+  <div class="aurora aurora--three"></div>
+</div>
+<div class="shooting-stars" aria-hidden="true">
+  <span class="shooting-star"></span>
+  <span class="shooting-star"></span>
+  <span class="shooting-star"></span>
+</div>
+
+<!-- ============================================================
+     CONSTELLATION SIGNATURE LAYER
+     A single connected line of star-points that draws itself across
+     the entire journey and resolves into a heart shape by the finale.
+     Rendered as an SVG overlay, path data driven by script.js.
+============================================================ -->
+<svg id="constellation-svg" class="constellation-svg" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+  <path id="constellation-path" class="constellation-path" fill="none" />
+  <g id="constellation-points"></g>
+</svg>
+
+<!-- ============================================================
+     FLOATING CONTROLS (persist across the whole experience)
+============================================================ -->
+<div class="floating-controls">
+  <button id="music-toggle" class="control-btn control-btn--music" aria-pressed="false" aria-label="Play music">
+    <span class="control-btn__icon control-btn__icon--play">
+      <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+    </span>
+    <span class="control-btn__icon control-btn__icon--wave" hidden>
+      <span class="wave-bar"></span><span class="wave-bar"></span><span class="wave-bar"></span>
+    </span>
+  </button>
+
+  <button id="replay-btn" class="control-btn control-btn--replay" aria-label="Replay experience">
+    <svg viewBox="0 0 24 24"><path d="M17.65 6.35A7.95 7.95 0 0 0 12 4a8 8 0 1 0 7.75 10h-2.08A6 6 0 1 1 12 6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+  </button>
+</div>
+
+<audio id="bg-music" loop preload="none">
+  <source src="assets/music/cinematic-theme.mp3" type="audio/mpeg" />
+</audio>
+<audio id="uplift-music" loop preload="none">
+  <source src="assets/music/uplifting-theme.mp3" type="audio/mpeg" />
+</audio>
+
+<!-- ============================================================
+     MAIN EXPERIENCE
+============================================================ -->
+<main id="experience">
+
+  <!-- ================= SCENE 1 — LOADING ================= -->
+  <section id="scene-loading" class="scene scene--loading" data-scene="loading">
+    <div class="loading-inner">
+      <div class="loading-mark">
+        <span class="loading-mark__heart"></span>
+      </div>
+      <p class="loading-text" id="loading-text">Preparing something special wait a little<span class="loading-dots"><span>.</span><span>.</span><span>.</span></span></p>
+      <div class="loading-bar-track">
+        <div class="loading-bar-fill" id="loading-bar-fill"></div>
+      </div>
+      <p class="loading-percent" id="loading-percent">0%</p>
+    </div>
+  </section>
+
+  <!-- ================= SCENE 2 — GALAXY INTRO ================= -->
+  <section id="scene-intro" class="scene scene--intro" data-scene="intro">
+    <div class="scene-inner">
+      <p class="eyebrow eyebrow--intro">for someone who feels like home</p>
+      <h2 class="intro-line" id="intro-line">A message for someone truly special</h2>
+      <div class="scroll-hint" aria-hidden="true">
+        <span class="scroll-hint__dot"></span>
+        <span class="scroll-hint__label">scroll</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= SCENE 3 — BIRTHDAY REVEAL ================= -->
+  <section id="scene-reveal" class="scene scene--reveal" data-scene="reveal">
+    <div class="scene-inner reveal-inner">
+      <h1 class="reveal-title" id="reveal-title">
+        <span class="reveal-word" data-word="Happy">
+          <span class="letter">H</span><span class="letter">a</span><span class="letter">p</span><span class="letter">p</span><span class="letter">y</span>
+        </span>
+        <span class="reveal-word" data-word="Birthday">
+          <span class="letter">B</span><span class="letter">i</span><span class="letter">r</span><span class="letter">t</span><span class="letter">h</span><span class="letter">d</span><span class="letter">a</span><span class="letter">y</span>
+        </span>
+      </h1>
+      <h2 class="reveal-name" id="reveal-name">
+        <span class="letter">R</span><span class="letter">o</span><span class="letter">n</span><span class="letter">a</span><span class="letter">k</span><span class="letter reveal-heart">❤</span>
+      </h2>
+      <div class="reveal-particles" id="reveal-particles" aria-hidden="true"></div>
+    </div>
+  </section>
+
+  <!-- ================= SCENE 4 — PERSONAL LETTER ================= -->
+  <section id="scene-letter" class="scene scene--letter" data-scene="letter">
+    <div class="scene-inner">
+      <p class="eyebrow">a letter, just for you</p>
+      <div class="glass-card letter-card" id="letter-card">
+        <div class="glass-card__sheen" aria-hidden="true"></div>
+        <div class="letter-scroll">
+          <p class="letter-text" id="letter-text" aria-live="polite"></p>
+          <span class="typewriter-cursor" id="typewriter-cursor">|</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= SCENE 5 — MEMORY GALLERY ================= -->
+  <section id="scene-gallery" class="scene scene--gallery" data-scene="gallery">
+    <div class="scene-inner">
+      <p class="eyebrow">moments worth keeping</p>
+      <h2 class="section-title">Our Memories</h2>
+
+      <div class="gallery-grid" id="gallery-grid">
+        <figure class="gallery-item" data-caption="We laughed together.">
+          <div class="gallery-item__frame">
+            <img src="assets/images/memory-1.jpg" alt="A shared memory of laughter" loading="lazy" />
+          </div>
+          <figcaption> early days whan you became my best buddy forever and ever.</figcaption>
+        </figure>
+
+        <figure class="gallery-item" data-caption="We grew together.">
+          <div class="gallery-item__frame">
+            <img src="assets/images/memory-2.jpeg" alt="A shared memory of growth" loading="lazy" />
+          </div>
+          <figcaption>Look Who is this handsome standing in  mustard flowers field chilling with his older cousin brother huhhh.</figcaption>
+        </figure>
+
+        <figure class="gallery-item" data-caption="You were always there.">
+          <div class="gallery-item__frame">
+            <img src="assets/images/memory-3.jpeg" alt="A shared memory of support" loading="lazy" />
+          </div>
+          <figcaption>bhai photo hi nhi h dusriii koii </figcaption>
+        </figure>
+
+        <figure class="gallery-item" data-caption="Our memories are priceless.">
+          <div class="gallery-item__frame">
+            <img src="assets/images/memory-4.jpeg" alt="A cherished shared memory" loading="lazy" />
+          </div>
+          <figcaption>areeeeee yrrrrrrrr srso ke khettt mhi kithaaa ghumegaaaa ab ruk bhi jaooooo</figcaption>
+        </figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= SCENE 6 — BIRTHDAY CAKE ================= -->
+  <section id="scene-cake" class="scene scene--cake" data-scene="cake">
+    <div class="scene-inner">
+      <p class="eyebrow">make a wish</p>
+      <div class="cake-stage" id="cake-stage">
+        <div class="cake-glow" aria-hidden="true"></div>
+        <div class="cake" id="cake">
+          <div class="cake__plate"></div>
+          <div class="cake__tier cake__tier--bottom">
+            <span class="cake__sprinkle" style="--i:0"></span>
+            <span class="cake__sprinkle" style="--i:1"></span>
+            <span class="cake__sprinkle" style="--i:2"></span>
+            <span class="cake__sprinkle" style="--i:3"></span>
+            <span class="cake__sprinkle" style="--i:4"></span>
+          </div>
+          <div class="cake__tier cake__tier--top"></div>
+          <div class="cake__candles" id="cake-candles">
+            <span class="candle"><span class="candle__flame"></span></span>
+            <span class="candle"><span class="candle__flame"></span></span>
+            <span class="candle"><span class="candle__flame"></span></span>
+            <span class="candle"><span class="candle__flame"></span></span>
+            <span class="candle"><span class="candle__flame"></span></span>
+          </div>
+          <div class="cake__smoke" id="cake-smoke" aria-hidden="true"></div>
+        </div>
+      </div>
+      <button id="blow-btn" class="cta-btn cta-btn--gold">
+        <span class="cta-btn__icon">🎂</span> Blow Out Candles
+      </button>
+      <p class="cake-hint" id="cake-hint">Tap the button to make your wish come true.</p>
+    </div>
+  </section>
+
+  <!-- ================= SCENE 7 — GIFT BOX ================= -->
+  <section id="scene-gift" class="scene scene--gift" data-scene="gift">
+    <div class="scene-inner">
+      <p class="eyebrow">one more thing</p>
+      <div class="gift-stage" id="gift-stage">
+        <div class="gift-hearts" id="gift-hearts" aria-hidden="true"></div>
+        <div class="gift-light" aria-hidden="true"></div>
+        <button class="gift-box" id="gift-box" aria-label="Open your gift">
+          <span class="gift-box__lid"></span>
+          <span class="gift-box__base"></span>
+          <span class="gift-box__ribbon-v"></span>
+          <span class="gift-box__ribbon-h"></span>
+          <span class="gift-box__bow"></span>
+        </button>
+      </div>
+      <p class="gift-message" id="gift-message">You deserve every happiness in the world.</p>
+      <p class="gift-hint" id="gift-hint">Tap the box to open it.</p>
+    </div>
+  </section>
+
+  <!-- ================= SCENE 8 — FIREWORKS FINALE ================= -->
+  <section id="scene-finale" class="scene scene--finale" data-scene="finale">
+    <canvas id="fireworks-canvas" aria-hidden="true"></canvas>
+    <div class="balloons" id="balloons" aria-hidden="true"></div>
+    <div class="scene-inner finale-inner">
+      <h2 class="finale-title">Happy Birthday Ronak <span class="finale-heart">❤</span></h2>
+      <p class="finale-subtitle">Best Friend Forever</p>
+      <p class="finale-credit">Made with <span class="finale-credit__heart">❤</span> by Kavyansh</p>
+    </div>
+  </section>
+
+  <!-- ================= SCENE 9 — ENDING ================= -->
+  <section id="scene-ending" class="scene scene--ending" data-scene="ending">
+    <div class="scene-inner ending-inner">
+      <p class="ending-line">No matter where life takes us,</p>
+      <p class="ending-line ending-line--em">you'll always be my brother.</p>
+      <p class="ending-sign">— Kavyansh ❤</p>
+      <div class="pulse-heart" id="pulse-heart" aria-hidden="true">
+        <svg viewBox="0 0 32 29" class="pulse-heart__svg">
+          <path d="M16 28.5S1.5 19.7 1.5 9.9C1.5 4.9 5.4 1 10.3 1c2.9 0 5.4 1.4 6.9 3.6C18.7 2.4 21.2 1 24.1 1c4.9 0 8.9 4 8.9 8.9C33 19.7 16 28.5 16 28.5z" />
+        </svg>
+      </div>
+      <button id="replay-btn-end" class="cta-btn cta-btn--ghost">Watch it again</button>
+    </div>
+  </section>
+
+</main>
+
+<!-- ============================================================
+     UNMUTE / START OVERLAY
+     Browsers block audio autoplay — this captures the first
+     interaction and kicks off the whole experience + music.
+============================================================ -->
+<button id="start-overlay" class="start-overlay" aria-label="Begin the experience">
+  <span class="start-overlay__ring"></span>
+  <span class="start-overlay__label">Tap to begin</span>
+</button>
+
+<!-- ============================================================
+     LIBRARIES (CDN)
+============================================================ -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/canvas-confetti/1.9.3/confetti.browser.min.js"></script>
+
+<!-- App script -->
+<script src="script.js"></script>
+</body>
+</html>
